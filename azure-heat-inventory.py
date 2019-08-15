@@ -1,6 +1,12 @@
 #======================================================================
 # Azure-Heat Integration 
 # Export data to Heat via SFTP Server
+#
+# 1. Connect to Azure
+# 2. Get information about virtual machines
+# 3. Store it in csv file
+# 4. Send csv to Heat sftp
+# 
 # Author:szymon@circlekeurope.com
 # Date Created: 2019-08-14
 #======================================================================
@@ -32,10 +38,10 @@ mia_error=True
 #==============================================================
 
 try:
-    print("Azure Managed Identity is not set up for this machine.")
     credentials  = MSIAuthentication()
     mia_error=False
 except:
+    print("Azure Managed Identity is not set up for this machine.")
     mia_error=True
 
 #==============================================================
@@ -59,7 +65,7 @@ if mia_error==True:
 #                   Quit if nothing works
 #==============================================================
 
-if sp_error==True or mia_error==True:
+if sp_error == True and mia_error == True:
     print("No SP or MIA authentication possible.\nPlease check you credentials...")
     exit(1)
 
@@ -85,9 +91,9 @@ output_os=""
 
 
 #Create output csv file
-csv_path="/home/szymon/project/azure-start-stop/env/code/"
+csv_path="/home/szymon/project/code/azure-heat-inventory/output/"
 csv_file_name="az-heat-inventory-list.csv"
-with open("az-heat-inventory-list.csv", 'w', newline='') as csv_file:
+with open(csv_path + csv_file_name, 'w', newline='') as csv_file:
     csv_writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
     row_headers=['Name','Owner','Enviroment','Project','AutoStart','AutoStop','StartTime','StopTime','PremiumSSD','Subscription Name','ResourceGroup','Location','Size','Id','OS']
     csv_writer.writerow(row_headers)
@@ -155,10 +161,27 @@ for subscriptions in subscription_client.subscriptions.list():
                     output_premium_ssd=tags["PremiumSSD"]
 
             output_row = [output_name,output_application,output_environment,output_application,output_project,output_auto_start,output_auto_stop,output_start_time,output_stop_time,output_premium_ssd,output_subscription_name,output_resource_group,output_location,output_size,output_id,output_os]
-            with open("az-heat-inventory-list.csv", 'a', newline='') as csv_file:
+            with open(csv_path + csv_file_name, 'a', newline='') as csv_file:
                 csv_writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
                 csv_writer.writerow(output_row)
-            
+
+
+#==============================================================
+#           Verify if SFTP os variables are provided
+#==============================================================
+print("Connecting to SFTP server")
+try:
+    sftp_hostname = os.environ['SFTP_HOSTNAME']
+    sftp_username = os.environ['SFTP_USERNAME']
+    sftp_password = os.environ['SFTP_PASSWORD']
+except:
+    print("SFTP Connection variables not provided\nPlease check SFTP hostname and credentials")
+    exit(2)
+
+with pysftp.Connection(sftp_hostname, username=sftp_username, password=sftp_password) as sftp:
+    print(sftp.pwd())
+    #sftp.put_d('images', 'static/images', preserve_mtime=True)
+    
 
 
 
