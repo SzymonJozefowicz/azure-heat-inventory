@@ -3,6 +3,16 @@
 Basic integration between Azure and Heat CI module using sftp connection.  
 Heat part of integration not included in this repo.
 
+Requirements:
+- Python3  
+- pip3 install azure-core
+- pip3 install azure-mgmt
+- pip3 install pysftp
+
+
+
+
+
 1. Connecting to Azure using Service Principal or Managed Identity Access  
   To use Service Principal you need to provide information as os variables:
      
@@ -42,4 +52,4 @@ Heat part of integration not included in this repo.
   SFTP_USERNAME
   SFTP_PASSWORD
   
-  # sftp server need to be in .ssh/know_host to use pysftp client
+   sftp server need to be in .ssh/know_host to use pysftp client
