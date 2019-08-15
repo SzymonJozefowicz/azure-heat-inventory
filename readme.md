@@ -13,7 +13,8 @@ Heat part of integration not included in this repo.
   Size  
   OS  
   Id  
-  Subcription Name + Resource Group  
+  Subcription Name
+  Resource Group  
   Location  
     
   Using tags:  
