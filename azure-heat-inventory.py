@@ -20,12 +20,14 @@ from azure.common.credentials import ServicePrincipalCredentials
 
 
 # Imports
-import paramiko
 import os
 import csv
 from azure.mgmt.resource import ResourceManagementClient, SubscriptionClient
 from azure.mgmt.compute import ComputeManagementClient
 from msrestazure.azure_exceptions import CloudError
+
+from paramiko import SSHClient
+from paramiko import AutoAddPolicy
 
 
 # ==============================================================
@@ -101,11 +103,22 @@ output_os = ""
 
 # Create output csv file
 csv_path = "/home/szymon/project/output/azure-heat-inventory/"
-csv_file_name = "az-heat-inventory-list.csv"
+csv_file_name = "vm-heat-inventory-list.csv"
 
 with open(csv_path + csv_file_name, 'w', newline='') as csv_file:
     csv_writer = csv.writer(csv_file, delimiter=',',quotechar='"', quoting=csv.QUOTE_ALL)
-    row_headers = ['Name', 'Owner', 'Enviroment', 'Project', 'AutoStart', 'AutoStop', 'StartTime','StopTime', 'PremiumSSD', 'Subscription Name', 'ResourceGroup', 'Location', 'Size', 'Id', 'OS']
+    #row_headers = ['Name', 'Owner', 'Enviroment', 'Project', 'AutoStart', 'AutoStop', 'StartTime','StopTime', 'PremiumSSD', 'Subscription Name', 'ResourceGroup', 'Location', 'Size', 'Id', 'OS']
+    row_headers = [
+        'Name',
+        'Owner', 
+        'Used For', 
+        'Description', 
+        'AutoStart', 
+        'AutoStop', 
+        'StartTime',
+        'StopTime', 
+        'OS']
+
     csv_writer.writerow(row_headers)
 
 
@@ -159,8 +172,16 @@ for subscriptions in subscription_client.subscriptions.list():
                 if "PremiumSSD" in tags:
                     output_premium_ssd = tags["PremiumSSD"]
 
-            output_row = [output_name, output_application, output_environment, output_application, output_project, output_auto_start, output_auto_stop, output_start_time, output_stop_time, output_premium_ssd, output_subscription_name, output_resource_group, output_location, output_size, output_id, output_os]
-
+            output_row = [
+                output_name,
+                output_owner,
+                output_environment, 
+                output_application + ' ' +  output_project + ' ' + output_subscription_name + ' ' + output_resource_group + ' ' + output_location + ' ' + output_size,
+                output_auto_start, 
+                output_auto_stop, 
+                output_start_time, 
+                output_stop_time, 
+                output_os]
             with open(csv_path + csv_file_name, 'a', newline='') as csv_file:
                 csv_writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
                 csv_writer.writerow(output_row)
@@ -183,9 +204,12 @@ except:
     print("SFTP Connection variables not provided\nPlease check SFTP hostname and credentials")
     exit(2)
 
+
 try:
     client = SSHClient()
-    client.set_missing_host_key_policy(paramiko.client.AutoAddPolicy)
+    policy = AutoAddPolicy()
+    #client.set_missing_host_key_policy(paramiko.client.AutoAddPolicy)
+    client.set_missing_host_key_policy(policy)
     client.connect(hostname=sftp_hostname,username=sftp_username,password=sftp_password)
     sftp = client.open_sftp()
     sftp.put(csv_path + csv_file_name, sftp_working_directory + csv_file_name)
