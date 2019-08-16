@@ -48,8 +48,8 @@ Requirements:
 4. Store information in csv file
 5. Send file to sftp server.  
   You need to provide sftp server scredentials as os variables
-  SFTP_HOSTNAME
-  SFTP_USERNAME
-  SFTP_PASSWORD
-  
+  SFTP_HOSTNAME  
+  SFTP_USERNAME  
+  SFTP_PASSWORD  
+    
    sftp server need to be in .ssh/know_host to use pysftp client
