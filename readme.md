@@ -21,6 +21,8 @@ Requirements:
    export AZURE_TENANT_ID=<your tenant id>  
      
    optional export AZURE_SUBSCRIPTION_ID'=<your subscription>  
+   os variables should be taken from azure key vault using command
+  
 
 2. Scan all available by rbac subscriptions  
 
