@@ -20,7 +20,7 @@ from azure.common.credentials import ServicePrincipalCredentials
 
 
 # Imports
-import pysftp
+import paramiko
 import os
 import csv
 from azure.mgmt.resource import ResourceManagementClient, SubscriptionClient
@@ -100,7 +100,7 @@ output_os = ""
 
 
 # Create output csv file
-csv_path = "/home/szymon/project/code/azure-heat-inventory/output/"
+csv_path = "/home/szymon/project/output/azure-heat-inventory/"
 csv_file_name = "az-heat-inventory-list.csv"
 
 with open(csv_path + csv_file_name, 'w', newline='') as csv_file:
@@ -172,7 +172,7 @@ for subscriptions in subscription_client.subscriptions.list():
 # ==============================================================
 
 print("Connecting to SFTP server")
-sftp_working_directory = "OUT/heat"
+sftp_working_directory = "OUT/heat/"
 
 try:
     sftp_hostname = os.environ['SFTP_HOSTNAME']
@@ -184,10 +184,11 @@ except:
     exit(2)
 
 try:
-    with pysftp.Connection(sftp_hostname, username=sftp_username, password=sftp_password) as sftp:
-        sftp.cwd(sftp_working_directory)
-        sftp.put(csv_path + csv_file_name, preserve_mtime=True)
+    client = SSHClient()
+    client.set_missing_host_key_policy(paramiko.client.AutoAddPolicy)
+    client.connect(hostname=sftp_hostname,username=sftp_username,password=sftp_password)
+    sftp = client.open_sftp()
+    sftp.put(csv_path + csv_file_name, sftp_working_directory + csv_file_name)
     print("Connection completed")
-
 except:
     print("Error sending file to SFTP server")
