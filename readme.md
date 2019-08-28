@@ -35,7 +35,7 @@ Requirements:
   Location  
     
   Using tags:  
-  Owner  
+  OwnerLogin  
   Environment  
   Project  
   Application  
@@ -48,8 +48,10 @@ Requirements:
 4. Store information in csv file
 5. Send file to sftp server using ssh client from paramiko
   You need to provide sftp server scredentials as os variables
-  SFTP_HOSTNAME  
-  SFTP_USERNAME  
-  SFTP_PASSWORD  
+  SFTP_HOSTNAME - sftp server name or IP  
+  SFTP_USERNAME - sftp user  
+  SFTP_PASSWORD - sftp password    
+  SFTP_TMP_PATH - local path to store sftp temporary files
+  SFTP_OUT_PATH - remote output path on sftp server
     
   
