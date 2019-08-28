@@ -77,9 +77,32 @@ if mia_error == True:
 #                   Quit if nothing works
 # ==============================================================
 
+
 if sp_error == True and mia_error == True:
     print("No Service Principal or Managed Identity Access authentication possible.\nPlease check you credentials...")
     exit(1)
+
+# ==============================================================
+#               Check SFTP Variables
+# ==============================================================
+
+sftp_var_error=True
+
+try:
+    csv_path = os.environ['SFTP_TMP_PATH']
+    sftp_hostname = os.environ['SFTP_HOSTNAME']
+    sftp_username = os.environ['SFTP_USERNAME']
+    sftp_password = os.environ['SFTP_PASSWORD']
+    sftp_var_error=False
+except:
+    sftp_var_error=True
+
+
+if sftp_var_error == True:
+    print("SFTP variables are not set. Please check os variables.")
+    print("SFTP_HOSTNAME\nSFTP_USERNAME\nSFTP_PASSWORD\nSFTP_TMP_PATH\n")
+    exit(2)
+
 
 # Create output variables
 
@@ -87,6 +110,7 @@ output_name = ""
 output_application = ""
 output_environment = ""
 output_application = ""
+output_owner_login=""
 output_project = ""
 output_auto_start = ""
 output_auto_stop = ""
@@ -102,15 +126,15 @@ output_os = ""
 
 
 # Create output csv file
-csv_path = "/home/szymon/project/output/azure-heat-inventory/"
+#csv_path = os.environ['SFTP_TMP_PATH']
 csv_file_name = "vm-heat-inventory-list.csv"
 
 with open(csv_path + csv_file_name, 'w', newline='') as csv_file:
     csv_writer = csv.writer(csv_file, delimiter=',',quotechar='"', quoting=csv.QUOTE_ALL)
-    #row_headers = ['Name', 'Owner', 'Enviroment', 'Project', 'AutoStart', 'AutoStop', 'StartTime','StopTime', 'PremiumSSD', 'Subscription Name', 'ResourceGroup', 'Location', 'Size', 'Id', 'OS']
+    #row_headers = ['Name', 'Login', 'Enviroment', 'Project', 'AutoStart', 'AutoStop', 'StartTime','StopTime', 'PremiumSSD', 'Subscription Name', 'ResourceGroup', 'Location', 'Size', 'Id', 'OS']
     row_headers = [
         'Name',
-        'Owner', 
+        'Login', 
         'Used For', 
         'Description', 
         'AutoStart', 
@@ -136,7 +160,7 @@ for subscriptions in subscription_client.subscriptions.list():
     resource_client = ResourceManagementClient(credentials, subscription_id)
 
 # For each resource group
-
+    
     for resource_group in resource_client.resource_groups.list():
         resource_group_name = resource_group.name
         print("Subscription:" + subscription_name + " Resource Group:" + resource_group_name)
@@ -155,36 +179,58 @@ for subscriptions in subscription_client.subscriptions.list():
             if tags != None:
                 if "Application" in tags:
                     output_application = tags["Application"]
-                if "Owner" in tags:
-                    output_owner = tags["Owner"]
+                else:
+                    output_application=""
+                if "OwnerLogin" in tags:
+                    output_owner_login = tags["OwnerLogin"]
+                else:
+                    output_owner_login=""
+                #if "Owner" in tags:
+                #    output_owner = tags["Owner"]
                 if "Environment" in tags:
                     output_environment = tags["Environment"]
+                else:
+                    output_environment=""
                 if "Project" in tags:
                     output_project = tags["Project"]
+                else:
+                    output_project=""
                 if "AutoStart" in tags:
                     output_auto_start = tags["AutoStart"]
+                else:
+                    output_auto_start=""
                 if "AutoStop" in tags:
                     output_auto_stop = tags["AutoStop"]
+                else:
+                    output_auto_stop=""
                 if "StartTime" in tags:
                     output_start_time = tags["StartTime"]
+                else:
+                    output_start_time=""
                 if "StopTime" in tags:
                     output_stop_time = tags["StopTime"]
+                else:
+                    output_stop_time=""
                 if "PremiumSSD" in tags:
                     output_premium_ssd = tags["PremiumSSD"]
+                else:
+                    output_premium_ssd=""
 
-            output_row = [
-                output_name,
-                output_owner,
-                output_environment, 
-                output_application + ' ' +  output_project + ' ' + output_subscription_name + ' ' + output_resource_group + ' ' + output_location + ' ' + output_size,
-                output_auto_start, 
-                output_auto_stop, 
-                output_start_time, 
-                output_stop_time, 
-                output_os]
-            with open(csv_path + csv_file_name, 'a', newline='') as csv_file:
-                csv_writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
-                csv_writer.writerow(output_row)
+                if output_application!="":
+                    output_row = [
+                    output_name,
+                    output_owner_login,
+                    output_environment, 
+                    output_application + ' ' +  output_project + ' ' + output_subscription_name + ' ' + output_resource_group + ' ' + output_location + ' ' + output_size,
+                    output_auto_start, 
+                    output_auto_stop, 
+                    output_start_time, 
+                    output_stop_time, 
+                    output_os]
+                    
+                    with open(csv_path + csv_file_name, 'a', newline='') as csv_file:
+                        csv_writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+                        csv_writer.writerow(output_row)
 
 # ==============================================================
 
@@ -195,14 +241,14 @@ for subscriptions in subscription_client.subscriptions.list():
 print("Connecting to SFTP server")
 sftp_working_directory = "OUT/heat/"
 
-try:
-    sftp_hostname = os.environ['SFTP_HOSTNAME']
-    sftp_username = os.environ['SFTP_USERNAME']
-    sftp_password = os.environ['SFTP_PASSWORD']
-
-except:
-    print("SFTP Connection variables not provided\nPlease check SFTP hostname and credentials")
-    exit(2)
+#try:
+#    sftp_hostname = os.environ['SFTP_HOSTNAME']
+#    sftp_username = os.environ['SFTP_USERNAME']
+#    sftp_password = os.environ['SFTP_PASSWORD']
+#
+#except:
+#    print("SFTP Connection variables not provided\nPlease check SFTP hostname and credentials")
+#    exit(2)
 
 
 try:
