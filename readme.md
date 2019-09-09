@@ -41,8 +41,8 @@ Requirements:
   Application  
   AutoStart  
   AutoStop  
-  StartTime  
-  StopTime  
+  AutoStartSchedule  
+  AutoStopSchedule  
   PremiumSSD  
   
 4. Store information in csv file
